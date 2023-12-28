@@ -1,5 +1,6 @@
 const express = require('express');
 const app = express();
+const cors = require('cors');
 const db = require('@cyclic.sh/dynamodb');
 const { v4: uuidv4 } = require('uuid');
 ;
@@ -54,6 +55,8 @@ app.get('/clientes', async (req, res) => {
 app.use('*', (req, res) => {
     res.send({ msg: 'no route handler found' });
 })
+
+app.use(cors());
 
 // Start the server
 const port = process.env.PORT || 3000
