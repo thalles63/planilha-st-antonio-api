@@ -7,9 +7,11 @@ const { v4: uuidv4 } = require('uuid');
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-var corsOptions = {
-    origin: ["https://tabela-st-antonio.cyclic.app", "http://localhost:4200"]
+const corsOptions = {
+    origin: ["http://localhost:4200"]
 }
+
+app.use(cors(corsOptions));
 
 const collection = db.collection("clientes");
 
@@ -59,8 +61,6 @@ app.get('/clientes', async (req, res) => {
 app.use('*', (req, res) => {
     res.send({ msg: 'no route handler found' });
 })
-
-app.use(cors(corsOptions));
 
 // Start the server
 const port = process.env.PORT || 3000
