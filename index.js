@@ -3,7 +3,20 @@ const app = express();
 const cors = require('cors');
 const db = require('@cyclic.sh/dynamodb');
 const { v4: uuidv4 } = require('uuid');
-;
+
+const fonts = {
+	Roboto: {
+		normal: './pdf/fonts/Roboto-Regular.ttf',
+		bold: './pdf/fonts/Roboto-Medium.ttf',
+		italics: './pdf/fonts/Roboto-Italic.ttf',
+		bolditalics: './pdf/fonts/Roboto-MediumItalic.ttf'
+	}
+};
+
+const PdfPrinter = require('./pdf/printer');
+const printer = new PdfPrinter(fonts);
+const fs = require('fs');
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -57,6 +70,28 @@ app.get('/clientes', async (req, res) => {
     );
 
     res.send(clientes);
+})
+
+app.get('/clientespdf', async (req, res) => {
+    const docDefinition = require("./generate-pdf");
+    const { results: clientesData } = await collection.list();
+    const clientes = await Promise.all(
+        clientesData.map(async ({ key }) => { 
+            const result = (await collection.get(key)).props;
+            return { id: key, ...result };
+        })
+    );
+
+    try {
+        const pdfDoc = printer.createPdfKitDocument(docDefinition.generatePdfInfo(clientes));
+        pdfDoc.pipe(fs.createWriteStream('pdfs/tables.pdf'));
+        pdfDoc.end();
+    } catch(e) {
+        console.log(e)
+        // dasdsadsa
+    }
+
+    res.send();
 })
 
 // Catch all handler for all other request.
