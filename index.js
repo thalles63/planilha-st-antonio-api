@@ -25,6 +25,7 @@ app.post('/clientes', async (req, res) => {
 // Update an item
 app.put('/clientes/:id', async (req, res) => {
     const key = req.params.id;
+    await collection.delete(key);
     const item = await collection.set(key, req.body);
     res.send(item);
 })
