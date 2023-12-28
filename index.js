@@ -91,7 +91,9 @@ app.get('/clientespdf', async (req, res) => {
         // dasdsadsa
     }
 
-    res.send();
+    const data = fs.readFileSync('pdfs/tables.pdf');
+    res.contentType("application/pdf");
+    res.send(data);
 })
 
 // Catch all handler for all other request.
