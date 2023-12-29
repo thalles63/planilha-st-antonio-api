@@ -1,5 +1,5 @@
 module.exports = {
-    generatePdfInfo: (dadosClientes) => {
+    generatePdfInfo: (dadosClientes, onlyPresent) => {
 
         const dadosFormatados = dadosClientes
             .sort(function(a, b) { return new Date(a.dataEntrega) - new Date(b.dataEntrega) })
@@ -7,10 +7,15 @@ module.exports = {
                 return [new Date(dado.dataEntrega).toLocaleDateString('pt-BR'), dado.cliente, dado.quantidade, dado.observacao]
         })
 
+        const data = new Date().toLocaleString("pt-BR", {timeZone: 'America/Sao_Paulo'}).split(",")[0];
+        const subtitulo = onlyPresent ?
+            'Listagem de todos os clientes com entregas pendentes, emitida em: ' + data :
+            'Listagem de todos os clientes, emitida em: ' + data;
+
         return {
             content: [
                 { text: 'Clientes cervejaria St. Antônio', style: 'header' },
-                // 'Listagem de todos os clientes com entregas pendentes, listagem emitida em: ',
+                subtitulo,
                 {
                     style: 'table',
                     table: {

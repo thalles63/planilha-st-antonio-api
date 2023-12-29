@@ -38,7 +38,6 @@ app.post('/clientes', async (req, res) => {
 // Update an item
 app.put('/clientes/:id', async (req, res) => {
     const key = req.params.id;
-    console.log(key)
     await collection.delete(key);
     const item = await collection.set(key, req.body);
     res.send(item);
@@ -60,6 +59,7 @@ app.get('/clientes/:id', async (req, res) => {
 
 // Get a full listing
 app.get('/clientes', async (req, res) => {
+    const onlyPresent = req.query.onlyPresent;
     const { results: clientesData } = await collection.list();
 
     const clientes = await Promise.all(
@@ -69,10 +69,13 @@ app.get('/clientes', async (req, res) => {
         })
     );
 
-    res.send(clientes);
+    const filteredClientes = filterClients(clientes, onlyPresent);
+
+    res.send(filteredClientes);
 })
 
 app.get('/clientespdf', async (req, res) => {
+    const onlyPresent = req.query.onlyPresent === 'true';
     const docDefinition = require("./generate-pdf");
     const { results: clientesData } = await collection.list();
     const clientes = await Promise.all(
@@ -81,12 +84,15 @@ app.get('/clientespdf', async (req, res) => {
             return { id: key, ...result };
         })
     );
+
     let pdfDoc;
     let chunks = [];
     let result;
 
+    const filteredClientes = filterClients(clientes, onlyPresent);
+
     try {
-        pdfDoc = printer.createPdfKitDocument(docDefinition.generatePdfInfo(clientes));
+        pdfDoc = printer.createPdfKitDocument(docDefinition.generatePdfInfo(filteredClientes, onlyPresent));
     } catch(e) {
         console.log(e)
         // dasdsadsa
@@ -103,12 +109,7 @@ app.get('/clientespdf', async (req, res) => {
         res.send(result)
     });
 
-    pdfDoc.end()
-
-
-    // const data = fs.readFileSync('pdfs/tables.pdf');
-    // res.contentType("application/pdf");
-    // res.send(data);
+    pdfDoc.end();
 })
 
 // Catch all handler for all other request.
@@ -121,3 +122,19 @@ const port = process.env.PORT || 3000
 app.listen(port, () => {
     console.log(`index.js listening on ${port}`);
 })
+
+function filterClients(clientes, onlyPresent) {
+    if (!onlyPresent) {
+        return clientes;
+    }
+
+    const now = new Date(new Date().toLocaleString("en-US", {timeZone: 'America/Sao_Paulo'}));
+    now.setHours(0,0,0,0);
+
+    let clientesFiltrados = clientes.filter((cliente) => {
+        const dataEntrega = new Date(cliente.dataEntrega + 'T00:00:00.000-03:00');
+        return dataEntrega >= now
+    })
+
+    return clientesFiltrados;
+}
