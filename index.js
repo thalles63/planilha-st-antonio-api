@@ -59,7 +59,7 @@ app.get('/clientes/:id', async (req, res) => {
 
 // Get a full listing
 app.get('/clientes', async (req, res) => {
-    const onlyPresent = req.query.onlyPresent;
+    const onlyPresent = req.query.onlyPresent === 'true';
     const { results: clientesData } = await collection.list();
 
     const clientes = await Promise.all(
