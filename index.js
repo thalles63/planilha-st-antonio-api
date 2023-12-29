@@ -81,19 +81,34 @@ app.get('/clientespdf', async (req, res) => {
             return { id: key, ...result };
         })
     );
+    let pdfDoc;
+    let chunks = [];
+    let result;
 
     try {
-        const pdfDoc = printer.createPdfKitDocument(docDefinition.generatePdfInfo(clientes));
-        pdfDoc.pipe(fs.createWriteStream('pdfs/tables.pdf'));
-        pdfDoc.end();
+        pdfDoc = printer.createPdfKitDocument(docDefinition.generatePdfInfo(clientes));
     } catch(e) {
         console.log(e)
         // dasdsadsa
     }
 
-    const data = fs.readFileSync('pdfs/tables.pdf');
-    res.contentType("application/pdf");
-    res.send(data);
+    pdfDoc.on('data', function (chunk) {
+        chunks.push(chunk)
+    });
+
+    pdfDoc.on('end', function () {
+        result = Buffer.concat(chunks)
+
+        res.contentType('application/pdf')
+        res.send(result)
+    });
+
+    pdfDoc.end()
+
+
+    // const data = fs.readFileSync('pdfs/tables.pdf');
+    // res.contentType("application/pdf");
+    // res.send(data);
 })
 
 // Catch all handler for all other request.
